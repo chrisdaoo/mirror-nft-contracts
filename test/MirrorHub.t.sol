@@ -38,14 +38,6 @@ contract MirrorHubTest is ERC721TokenReceiver, Test {
         mirror_hub.mirror(origin_nft, 1);
     }
 
-    function test_RevertIf_OriginTokenIdNotExist() public {
-        Nft origin_nft = new Nft("AAA", "AAA");
-        origin_nft.mint(address(this), 1);
-
-        vm.expectRevert(OriginTokenIdNotExist.selector);
-        mirror_hub.mirror(origin_nft, 2);
-    }
-
     function test_mirror_to() public {
         Nft origin_nft = new Nft("AAA", "AAA");
         origin_nft.mint(address(this), 1);
@@ -69,17 +61,51 @@ contract MirrorHubTest is ERC721TokenReceiver, Test {
         mirror_hub.mirror(IERC721Metadata(address(origin_nft)), 1);
     }
 
+    function test_RevertIf_OriginTokenIdNotExist() public {
+        Nft origin_nft = new Nft("AAA", "AAA");
+        origin_nft.mint(address(this), 1);
+
+        vm.expectRevert(OriginTokenIdNotExist.selector);
+        mirror_hub.mirror(origin_nft, 2);
+    }
+
+    function test_RevertIf_doubleInitialized() public {
+        Nft origin_nft = new Nft("AAA", "AAA");
+        origin_nft.mint(address(this), 1);
+
+        mirror_hub.mirror(origin_nft, 1);
+        ITargetNftERC721 target_nft = mirror_hub.nft_map(origin_nft);
+
+        vm.expectRevert("has been initialized.");
+        target_nft.initialize(origin_nft, address(mirror_hub));
+    }
+
+    function test_RevertIf_mintToNotFromMirrorHub() public {
+        Nft origin_nft = new Nft("AAA", "AAA");
+        origin_nft.mint(address(this), 1);
+
+        mirror_hub.mirror(origin_nft, 1);
+        ITargetNftERC721 target_nft = mirror_hub.nft_map(origin_nft);
+
+        vm.expectRevert("Only MirrorHub can call this function.");
+        target_nft.mint_to(address(0x1234), 2);
+    }
+
     function test_real_nft_mirror() public {
         vm.createSelectFork("https://cloudflare-eth.com/", 17623295);
-        MirrorHub _mirror_hub = new MirrorHubHarness();
+        MirrorHub _mirror_hub = new MirrorHub();
 
         IERC721Metadata origin_nft = IERC721Metadata(0xED5AF388653567Af2F388E6224dC7C4b3241C544);
         _mirror_hub.mirror(origin_nft, 2);
 
+        _mirror_hub.mirror(origin_nft, 3);
+        _mirror_hub.mirror(origin_nft, 4);
+
         ITargetNftERC721 target_nft = _mirror_hub.nft_map(origin_nft);
 
-        assertEq(target_nft.balanceOf(address(this)), 1);
+        assertEq(target_nft.balanceOf(address(this)), 3);
         assertEq(target_nft.ownerOf(1), address(this));
+        assertEq(target_nft.ownerOf(3), address(this));
 
         assertEq(target_nft.name(), origin_nft.name());
         assertEq(target_nft.symbol(), origin_nft.symbol());
@@ -88,10 +114,12 @@ contract MirrorHubTest is ERC721TokenReceiver, Test {
 
     function test_mirror_cryptopunks() public {
         vm.createSelectFork("https://cloudflare-eth.com/", 17623295);
-        MirrorHub _mirror_hub = new MirrorHubHarness();
+        MirrorHub _mirror_hub = new MirrorHub();
 
         IERC721Metadata origin_nft = IERC721Metadata(CryptoPunks);
         _mirror_hub.mirror(origin_nft, 100);
+        _mirror_hub.mirror(origin_nft, 101);
+        _mirror_hub.mirror(origin_nft, 102);
         ITargetNftERC721 target_nft = _mirror_hub.nft_map(origin_nft);
 
         assertEq(target_nft.name(), origin_nft.name());
