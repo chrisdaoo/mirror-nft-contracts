@@ -31,24 +31,24 @@ contract MirrorHubTest is ERC721TokenReceiver, Test {
 
     function test_mirror_simple() public {
         Nft origin_nft = new Nft("AAA", "AAA");
-		origin_nft.mint(address(this), 1);
+        origin_nft.mint(address(this), 1);
 
         vm.expectEmit(true, true, true, true);
         emit Mirror(origin_nft, 1, address(this));
-		mirror_hub.mirror(origin_nft, 1);
-	}
+        mirror_hub.mirror(origin_nft, 1);
+    }
 
     function test_RevertIf_OriginTokenIdNotExist() public {
         Nft origin_nft = new Nft("AAA", "AAA");
-		origin_nft.mint(address(this), 1);
+        origin_nft.mint(address(this), 1);
 
-		vm.expectRevert(OriginTokenIdNotExist.selector);
-		mirror_hub.mirror(origin_nft, 2);
-	}
+        vm.expectRevert(OriginTokenIdNotExist.selector);
+        mirror_hub.mirror(origin_nft, 2);
+    }
 
     function test_mirror_to() public {
         Nft origin_nft = new Nft("AAA", "AAA");
-		origin_nft.mint(address(this), 1);
+        origin_nft.mint(address(this), 1);
 
         vm.expectEmit(true, true, true, true);
         emit NewMirrorNft(origin_nft);
@@ -57,48 +57,46 @@ contract MirrorHubTest is ERC721TokenReceiver, Test {
         mirror_hub.exposed_mirror_to(origin_nft, 1, address(0x1234));
     }
 
-	function test_RevertIf_OriginNftIsEOA() public {
-		Nft origin_nft = Nft(address(0x1234));
-		vm.expectRevert(NotIERC721.selector);
-		mirror_hub.mirror(origin_nft, 1);
-	}
+    function test_RevertIf_OriginNftIsEOA() public {
+        Nft origin_nft = Nft(address(0x1234));
+        vm.expectRevert(NotIERC721.selector);
+        mirror_hub.mirror(origin_nft, 1);
+    }
 
-	function test_RevertIf_OriginNftIsNotNft() public {
-		NotNft origin_nft = new NotNft();
-		vm.expectRevert(NotIERC721.selector);
-		mirror_hub.mirror(IERC721Metadata(address(origin_nft)), 1);
-	}
+    function test_RevertIf_OriginNftIsNotNft() public {
+        NotNft origin_nft = new NotNft();
+        vm.expectRevert(NotIERC721.selector);
+        mirror_hub.mirror(IERC721Metadata(address(origin_nft)), 1);
+    }
 
-	function test_real_nft_mirror() public {
-		vm.createSelectFork("https://cloudflare-eth.com/", 17623295);
+    function test_real_nft_mirror() public {
+        vm.createSelectFork("https://cloudflare-eth.com/", 17623295);
         MirrorHub _mirror_hub = new MirrorHubHarness();
 
-		IERC721Metadata origin_nft = IERC721Metadata(0xED5AF388653567Af2F388E6224dC7C4b3241C544);
-		_mirror_hub.mirror(origin_nft, 2);
+        IERC721Metadata origin_nft = IERC721Metadata(0xED5AF388653567Af2F388E6224dC7C4b3241C544);
+        _mirror_hub.mirror(origin_nft, 2);
 
-		ITargetNftERC721 target_nft = _mirror_hub.nft_map(origin_nft);
+        ITargetNftERC721 target_nft = _mirror_hub.nft_map(origin_nft);
 
-		assertEq(target_nft.balanceOf(address(this)), 1);
-		assertEq(target_nft.ownerOf(1), address(this));
+        assertEq(target_nft.balanceOf(address(this)), 1);
+        assertEq(target_nft.ownerOf(1), address(this));
 
-		assertEq(target_nft.name(), origin_nft.name());
-		assertEq(target_nft.symbol(), origin_nft.symbol());
-		assertEq(target_nft.tokenURI(1), origin_nft.tokenURI(2));
-	}
+        assertEq(target_nft.name(), origin_nft.name());
+        assertEq(target_nft.symbol(), origin_nft.symbol());
+        assertEq(target_nft.tokenURI(1), origin_nft.tokenURI(2));
+    }
 
-	function test_mirror_cryptopunks() public {
-		vm.createSelectFork("https://cloudflare-eth.com/", 17623295);
+    function test_mirror_cryptopunks() public {
+        vm.createSelectFork("https://cloudflare-eth.com/", 17623295);
         MirrorHub _mirror_hub = new MirrorHubHarness();
 
-		IERC721Metadata origin_nft = IERC721Metadata(CryptoPunks);
-		_mirror_hub.mirror(origin_nft, 100);
-		ITargetNftERC721 target_nft = _mirror_hub.nft_map(origin_nft);
+        IERC721Metadata origin_nft = IERC721Metadata(CryptoPunks);
+        _mirror_hub.mirror(origin_nft, 100);
+        ITargetNftERC721 target_nft = _mirror_hub.nft_map(origin_nft);
 
-		assertEq(target_nft.name(), origin_nft.name());
-		assertEq(target_nft.symbol(), origin_nft.symbol());
+        assertEq(target_nft.name(), origin_nft.name());
+        assertEq(target_nft.symbol(), origin_nft.symbol());
 
-		// console2.log(target_nft.tokenURI(1));
-	}
-	
-	
+        // console2.log(target_nft.tokenURI(1));
+    }
 }

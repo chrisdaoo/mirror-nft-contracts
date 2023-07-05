@@ -13,7 +13,7 @@ interface ICryptoPunks {
 }
 
 interface ITargetNftERC721 is ITargetNft, IERC721Metadata {}
- 
+
 contract MirrorHub {
     using Address for address;
 
@@ -34,36 +34,36 @@ contract MirrorHub {
         mirror_nft = new MirrorNft();
     }
 
-	function _check_origin_nft(IERC721Metadata origin_nft) internal view {
-		address origin_nft_address = address(origin_nft);
-		if(block.chainid != 1 || origin_nft_address != CryptoPunks) {
-			if (!origin_nft_address.isContract()) revert NotIERC721();
-			try IERC165(origin_nft_address).supportsInterface(0x80ac58cd) returns (bool retval) {
-				if (!retval) {
-					revert NotIERC721();
-				}
-			} catch {
-				revert NotIERC721();
-			}
-		}
-	}
+    function _check_origin_nft(IERC721Metadata origin_nft) internal view {
+        address origin_nft_address = address(origin_nft);
+        if (block.chainid != 1 || origin_nft_address != CryptoPunks) {
+            if (!origin_nft_address.isContract()) revert NotIERC721();
+            try IERC165(origin_nft_address).supportsInterface(0x80ac58cd) returns (bool retval) {
+                if (!retval) {
+                    revert NotIERC721();
+                }
+            } catch {
+                revert NotIERC721();
+            }
+        }
+    }
 
-	function _check_origin_token(IERC721Metadata origin_nft, uint256 origin_tokenId) internal view {
-		address origin_nft_address = address(origin_nft);
+    function _check_origin_token(IERC721Metadata origin_nft, uint256 origin_tokenId) internal view {
+        address origin_nft_address = address(origin_nft);
 
-		function (uint256) external view returns (address) ownerOf_func;
-		if(origin_nft_address == CryptoPunks) {
-			ownerOf_func = ICryptoPunks(address(origin_nft)).punkIndexToAddress;
-		} else {
-			ownerOf_func = origin_nft.ownerOf;
-		}
+        function (uint256) external view returns (address) ownerOf_func;
+        if (origin_nft_address == CryptoPunks) {
+            ownerOf_func = ICryptoPunks(address(origin_nft)).punkIndexToAddress;
+        } else {
+            ownerOf_func = origin_nft.ownerOf;
+        }
 
-		try ownerOf_func(origin_tokenId) returns (address token_owner) {
-			if(token_owner == address(0)) revert OriginTokenIdNotExist();
-		} catch {
-			revert OriginTokenIdNotExist();
-		}
-	}
+        try ownerOf_func(origin_tokenId) returns (address token_owner) {
+            if (token_owner == address(0)) revert OriginTokenIdNotExist();
+        } catch {
+            revert OriginTokenIdNotExist();
+        }
+    }
 
     function _mirror_to(IERC721Metadata origin_nft, uint256 origin_tokenId, address to) internal {
         // get target_nft
@@ -71,10 +71,10 @@ contract MirrorHub {
 
         if (address(target_nft) == address(0)) {
             // check origin_nft
-			_check_origin_nft(origin_nft);
+            _check_origin_nft(origin_nft);
         }
-		// check origin_token
-		_check_origin_token(origin_nft, origin_tokenId);
+        // check origin_token
+        _check_origin_token(origin_nft, origin_tokenId);
 
         if (address(target_nft) == address(0)) {
             // deploy target_nft
@@ -83,7 +83,7 @@ contract MirrorHub {
             nft_map[origin_nft] = target_nft;
 
             emit NewMirrorNft(origin_nft);
-		}
+        }
 
         target_nft.mint_to(to, origin_tokenId);
 
