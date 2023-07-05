@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IERC721Receiver} from "openzeppelin/token/ERC721/IERC721Receiver.sol";
+import {ERC721TokenReceiver} from "solmate/tokens/ERC721.sol";
 
 import "forge-std/Test.sol";
 import "../src/MirrorHub.sol";
@@ -14,7 +14,7 @@ contract MirrorHubHarness is MirrorHub {
     }
 }
 
-contract CounterTest is IERC721Receiver, Test {
+contract MirrorHubTest is ERC721TokenReceiver, Test {
     MirrorHubHarness public mirror_hub;
 
     address public constant CryptoPunks = 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB;
@@ -24,13 +24,6 @@ contract CounterTest is IERC721Receiver, Test {
 
     event NewMirrorNft(IERC721Metadata indexed origin_nft);
     event Mirror(IERC721Metadata indexed origin_nft, uint256 indexed origin_tokenId, address indexed to);
-
-    function onERC721Received(address, address, uint256, bytes calldata)
-		public pure
-        returns (bytes4)
-    {
-        return this.onERC721Received.selector;
-    }
 
     function setUp() public {
         mirror_hub = new MirrorHubHarness();

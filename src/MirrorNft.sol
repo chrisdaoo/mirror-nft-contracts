@@ -24,6 +24,7 @@ contract MirrorNft is ERC721("MirrorNft", "M721"), ITargetNft {
     address public mirror_hub;
     mapping(uint256 => uint256) public id_map;
     uint256 public current_tokenId;
+	bool public is_initialized;
 
     modifier only_mirrorhub() {
         require(msg.sender == mirror_hub, "Only MirrorHub can call this function.");
@@ -31,8 +32,10 @@ contract MirrorNft is ERC721("MirrorNft", "M721"), ITargetNft {
     }
 
     function initialize(IERC721Metadata _origin_nft, address _mirror_hub) external {
+		require(!is_initialized, "has been initialized.");
         origin_nft = _origin_nft;
         mirror_hub = _mirror_hub;
+		is_initialized = true;
     }
 
     function name() public view override returns (string memory) {
